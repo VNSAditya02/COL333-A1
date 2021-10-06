@@ -78,16 +78,22 @@ class ReflexAgent(Agent):
         # print(newPos)
         # print(newFood.asList())
         food_locations = newFood.asList()
+        food_locations2 = Food2.asList()
         min_distance = float('inf')
         max_distance = float('-inf')
+        Min = float('-inf')
+        Max = float('inf')
         index = -1
         distance = 0
-        for i in range(len(food_locations)):
-            food = food_locations[i]
+        mind =  float('-inf')
+        for i in range(len(food_locations2)):
+            food = food_locations2[i]
             temp = manhattanDistance(newPos, food)
+            temp2 = manhattanDistance(currentGameState.getPacmanPosition(),food)
             distance += temp
             # distance += (food[0] - newPos[0])**2 + (food[1] - newPos[1])**2
             min_distance = min(temp, min_distance)
+            mind = min(temp2,mind)
             max_distance = max(temp, min_distance)
 
         ghost_distance = [0]*len(newGhostStates)
@@ -96,12 +102,14 @@ class ReflexAgent(Agent):
             ghost_distance[i] = manhattanDistance(newPos, ghost)
             # ghost_distance[i] = (ghost[0] - newPos[0])**2 + (ghost[1] - newPos[1])**2
         # print(10*(1/(min(ghost_distance) + 0.0001)))
-        # score = 100/(len(food_locations) + 1) + 5*len(food_locations)*(1/(distance + 1)) + (5/(max_distance + 1)) + (5/(min_distance + 1)) - 10*(min(ghost_distance)) - (sum(ghost_distance)/len(ghost_distance) + 1)
-        score = 2**(-len(food_locations)/10*((min(ghost_distance) + sum(ghost_distance)/len(ghost_distance) + 1)))
-        # print("-----------")
-        # print(newGhostStates[1].getPosition())
-        # print(newScaredTimes)
-        return score
+        #score = 100/(len(food_locations) + 1) + 5*len(food_locations)*(1/(distance + 1)) + (5/(max_distance + 1)) + (5/(min_distance + 1 - 10*(min(ghost_distance)) - (sum(ghost_distance)/len(ghost_distance) + 1)))
+        #score = 2**(-len(food_locations)/(100*((min(ghost_distance) + sum(ghost_distance)/len(ghost_distance) + 1)))) #+ 2**((min_distance + 1))
+        
+        score = (9/(1+min_distance))  - (10/(1+min(ghost_distance))) #- (1/(0.001+max(ghost_distance)))
+        score = successorGameState.getScore() + score 
+        #print(newcap)
+
+        return score 
 
 def scoreEvaluationFunction(currentGameState):
     """

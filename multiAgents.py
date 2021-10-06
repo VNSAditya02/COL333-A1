@@ -74,11 +74,14 @@ class ReflexAgent(Agent):
         newGhostStates = successorGameState.getGhostStates()
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
+        newcap = successorGameState.getCapsules()
+        Food2 = currentGameState.getFood()
         "*** YOUR CODE HERE ***"
         # print(newPos)
         # print(newFood.asList())
         food_locations = newFood.asList()
         food_locations2 = Food2.asList()
+        #caplist = newcap.asList()
         min_distance = float('inf')
         max_distance = float('-inf')
         Min = float('-inf')
@@ -106,6 +109,15 @@ class ReflexAgent(Agent):
         #score = 2**(-len(food_locations)/(100*((min(ghost_distance) + sum(ghost_distance)/len(ghost_distance) + 1)))) #+ 2**((min_distance + 1))
         
         score = (9/(1+min_distance))  - (10/(1+min(ghost_distance))) #- (1/(0.001+max(ghost_distance)))
+        if(min(ghost_distance)<=1 and max(newScaredTimes)!=0):
+            score = Min
+            #print("Hello")
+        if(max(newScaredTimes)!=0):
+            maxcap = max(newScaredTimes)
+            #print(maxcap)
+            if(max!=0):
+                score = score + (2**(maxcap))*(9/(1+min_distance))
+        
         score = successorGameState.getScore() + score 
         #print(newcap)
 

@@ -73,53 +73,36 @@ class ReflexAgent(Agent):
         newFood = successorGameState.getFood()
         newGhostStates = successorGameState.getGhostStates()
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
-
         newcap = successorGameState.getCapsules()
-        Food2 = currentGameState.getFood()
         "*** YOUR CODE HERE ***"
-        # print(newPos)
-        # print(newFood.asList())
+
         food_locations = newFood.asList()
-        food_locations2 = Food2.asList()
-        #caplist = newcap.asList()
         min_distance = float('inf')
         max_distance = float('-inf')
         Min = float('-inf')
         Max = float('inf')
-        index = -1
-        distance = 0
-        mind =  float('-inf')
-        for i in range(len(food_locations2)):
-            food = food_locations2[i]
+
+        for i in range(len(food_locations)):
+            food = food_locations[i]
             temp = manhattanDistance(newPos, food)
-            temp2 = manhattanDistance(currentGameState.getPacmanPosition(),food)
-            distance += temp
-            # distance += (food[0] - newPos[0])**2 + (food[1] - newPos[1])**2
             min_distance = min(temp, min_distance)
-            mind = min(temp2,mind)
-            max_distance = max(temp, min_distance)
 
         ghost_distance = [0]*len(newGhostStates)
+        min_ghost_distance = float('inf')
+        scared_ghost_distance = float('inf')
         for i in range(len(newGhostStates)):
             ghost = newGhostStates[i].getPosition()
             ghost_distance[i] = manhattanDistance(newPos, ghost)
-            # ghost_distance[i] = (ghost[0] - newPos[0])**2 + (ghost[1] - newPos[1])**2
-        # print(10*(1/(min(ghost_distance) + 0.0001)))
-        #score = 100/(len(food_locations) + 1) + 5*len(food_locations)*(1/(distance + 1)) + (5/(max_distance + 1)) + (5/(min_distance + 1 - 10*(min(ghost_distance)) - (sum(ghost_distance)/len(ghost_distance) + 1)))
-        #score = 2**(-len(food_locations)/(100*((min(ghost_distance) + sum(ghost_distance)/len(ghost_distance) + 1)))) #+ 2**((min_distance + 1))
+            if(newScaredTimes[i] == 0):
+                min_ghost_distance = min(min_ghost_distance, ghost_distance[i])
+            else:
+                scared_ghost_distance = min(scared_ghost_distance, ghost_distance[i])
         
-        score = (9/(1+min_distance))  - (10/(1+min(ghost_distance))) #- (1/(0.001+max(ghost_distance)))
-        if(min(ghost_distance)<=1 and max(newScaredTimes)!=0):
+        if(min_ghost_distance <= 1):
             score = Min
-            #print("Hello")
-        if(max(newScaredTimes)!=0):
-            maxcap = max(newScaredTimes)
-            #print(maxcap)
-            if(max!=0):
-                score = score + (2**(maxcap))*(9/(1+min_distance))
-        
-        score = successorGameState.getScore() + score 
-        #print(newcap)
+            return score
+
+        score = successorGameState.getScore() + (9/(1 + min_distance)) + 50/(1 + scared_ghost_distance)  - (10/(1 + min_ghost_distance))
 
         return score 
 
@@ -311,7 +294,61 @@ def betterEvaluationFunction(currentGameState):
     DESCRIPTION: <write something here so we know what you did>
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    newPos = currentGameState.getPacmanPosition()
+    newFood = currentGameState.getFood()
+    newGhostStates = currentGameState.getGhostStates()
+    newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
+    newCapsules = currentGameState.getCapsules()
+
+    food_locations = newFood.asList()
+    min_distance = float('inf')
+    max_distance = float('-inf')
+    Min = float('-inf')
+    Max = float('inf')
+    distance = 0
+    for i in range(len(food_locations)):
+        food = food_locations[i]
+        temp = manhattanDistance(newPos, food)
+        distance += temp
+        min_distance = min(temp, min_distance)
+        max_distance = max(temp, min_distance)
+
+    min_capsule_distance = float('inf')
+    capsule_distance = 0
+    for i in range(len(newCapsules)):
+        temp = manhattanDistance(newPos, newCapsules[i])
+        min_capsule_distance = min(min_capsule_distance, temp)
+        capsule_distance += 5*temp
+
+    ghost_distance = [0]*len(newGhostStates)
+    min_ghost_distance = float('inf')
+    scared_ghost_distance = float('inf')
+    t = 0
+    for i in range(len(newGhostStates)):
+        ghost = newGhostStates[i].getPosition()
+        ghost_distance[i] = manhattanDistance(newPos, ghost)
+        if(newScaredTimes[i] == 0 ):
+            min_ghost_distance = min(min_ghost_distance, ghost_distance[i])
+            t += ghost_distance[i]
+        else:    
+            scared_ghost_distance += 15*ghost_distance[i]
+
+    if(min_ghost_distance == 0 or currentGameState.isLose()):
+        score = Min
+        return score
+
+    if(currentGameState.isWin()):
+        return Max
+
+    if(min_capsule_distance == 0): 
+        return Max
+
+    if(distance == -1):
+        distance = 0
+
+    score = 500/(len(food_locations) + 1) + 10/(1 + distance) + 10/(1 + scared_ghost_distance) - (0.5/(1 + t))
+    score += 10/(len(newCapsules) + 1) + 10/(1 + capsule_distance)
+    return score 
 
 # Abbreviation
 better = betterEvaluationFunction
